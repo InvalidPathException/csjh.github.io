@@ -327,7 +327,7 @@ function tryReadOperator(input: string, index: number) {
 
     /* Case 9: Single-char operator like (, ), ~, T, F. */
     if (
-        /[()~TF^!\u2227\u2228\u2192\u2194\u22A4\u22A5\u00AC]/.test(
+        /[()~TF^!\u2227\u2228\u2192\u2194\u22A4\u22A5\u00AC\u2295]/.test(
             input.charAt(index)
         )
     ) {
@@ -349,8 +349,7 @@ function translate(input: string) {
         input === "and" ||
         input === "\u2227" ||
         input === "\\land" ||
-        input === "\\wedge" ||
-        input === "^"
+        input === "\\wedge"
     )
         return "/\\";
     if (
@@ -386,6 +385,13 @@ function translate(input: string) {
         input === "\\neg"
     )
         return "~";
+    if (
+        input === "xor" ||
+        input === "^" ||
+        input === "\u2295" ||
+        input === "\\niff"
+    )
+        return "^";
     if (input === "\u22A4" || input === "true" || input === "\\top") return "T";
     if (input === "\u22A5" || input === "false" || input === "\\bot")
         return "F";
@@ -415,7 +421,7 @@ function scannerFail(why: string, start: number, end: number) {
  */
 function checkIntegrity(input: string) {
     const okayChars =
-        /[A-Za-z_0-9\\\/<>\-~^()\s\&\|\=\!\u2227\u2228\u2192\u2194\u22A4\u22A5\u00AC]/;
+        /[A-Za-z_0-9\\\/<>\-~^()\s\&\|\=\!\u2227\u2228\u2192\u2194\u22A4\u22A5\u00AC\u2295]/;
     for (let i = 0; i < input.length; i++) {
         if (!okayChars.test(input.charAt(i))) {
             scannerFail("Illegal character", i, i + 1);

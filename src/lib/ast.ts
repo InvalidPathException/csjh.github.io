@@ -77,6 +77,14 @@ export function iffNode(lhs: Node, rhs: Node): Node {
     }
 }
 
+/*** Node type for ^ ***/
+export function xorNode(lhs: Node, rhs: Node): Node {
+    return {
+        evaluate: (assignment) => lhs.evaluate(assignment) !== rhs.evaluate(assignment),
+        toString: (variables) => "(" + lhs.toString(variables) + " &oplus; " + rhs.toString(variables) + ")",
+    }
+}
+
 /*** Node type for variables ***/
 export function variableNode(index: number): Node {
     return {

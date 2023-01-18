@@ -14,6 +14,7 @@ import {
     impliesNode,
     orNode,
     andNode,
+    xorNode,
     type Node
 } from "./ast";
 import { kScannerConstants, scan } from "./scanner";
@@ -305,7 +306,8 @@ function isBinaryOperator(token: { type: string }) {
         token.type === "<->" ||
         token.type === "->" ||
         token.type === "/\\" ||
-        token.type === "\\/"
+        token.type === "\\/" ||
+        token.type === "^"
     );
 }
 
@@ -317,7 +319,7 @@ function isBinaryOperator(token: { type: string }) {
  */
 function priorityOf(token: { type: string }) {
     if (token.type === kScannerConstants.EOF) return -1;
-    if (token.type === "<->") return 0;
+    if (token.type === "<->" || token.type === "^") return 0;
     if (token.type === "->") return 1;
     if (token.type === "\\/") return 2;
     if (token.type === "/\\") return 3;
@@ -334,6 +336,7 @@ function createOperatorNode(lhs: Node, token: { type: string }, rhs: Node) {
     if (token.type === "->") return impliesNode(lhs, rhs);
     if (token.type === "\\/") return orNode(lhs, rhs);
     if (token.type === "/\\") return andNode(lhs, rhs);
+    if (token.type === "^") return xorNode(lhs, rhs);
     unreachable(
         "Should never need to create an operator node from " + token.type
     );
