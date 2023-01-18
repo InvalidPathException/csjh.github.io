@@ -31,7 +31,7 @@
             if (prop == "length") {
                 return variables.length;
             } else {
-                return (target.i >> (target.length - Number(prop) - 1)) & 1;
+                return !((target.i >> (target.length - Number(prop) - 1)) & 1);
             }
         }
     });
@@ -67,7 +67,7 @@
                     {@html ast.toString(variables)}
                 </th>
             </tr>
-            {#each { length: variables.length ** 2 } as _, i}
+            {#each { length: 1 << variables.length } as _, i}
                 {@const n = value.i = i}
                 <tr>
                     {#each assignment as v}
@@ -141,17 +141,5 @@
         color: #202020;
         font-family: monospace;
         font-size: 20pt;
-    }
-
-    table.connectives-help {
-        display: inline-block;
-        text-align: center;
-        font-size: 150%;
-        font-family: "Ubuntu Mono";
-        margin: 10px 0 0 0;
-    }
-
-    table.connectives-help td {
-        width: 75px;
     }
 </style>
