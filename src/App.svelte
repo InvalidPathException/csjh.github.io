@@ -1,45 +1,65 @@
 <script lang="ts">
-  import svelteLogo from './assets/svelte.svg'
-  import Counter from './lib/Counter.svelte'
+    import TruthTable from "./lib/TruthTable.svelte";
+
+    let input = "";
 </script>
 
-<main>
-  <div>
-    <a href="https://vitejs.dev" target="_blank" rel="noreferrer"> 
-      <img src="/vite.svg" class="logo" alt="Vite Logo" />
-    </a>
-    <a href="https://svelte.dev" target="_blank" rel="noreferrer"> 
-      <img src={svelteLogo} class="logo svelte" alt="Svelte Logo" />
-    </a>
-  </div>
-  <h1>Vite + Svelte</h1>
-
-  <div class="card">
-    <Counter />
-  </div>
-
-  <p>
-    Check out <a href="https://github.com/sveltejs/kit#readme" target="_blank" rel="noreferrer">SvelteKit</a>, the official Svelte app framework powered by Vite!
-  </p>
-
-  <p class="read-the-docs">
-    Click on the Vite and Svelte logos to learn more
-  </p>
-</main>
+<div class="content">
+    <h1 class="title">Truth Table Generator</h1>
+    <p class="overview">
+        This tool generates truth tables for propositional logic formulas. You
+        can enter logical operators in several different formats. For example,
+        the propositional formula <nobr>p &and; q &rarr; &not;r</nobr> could be
+        written as
+        <nobr><tt>p /\ q -&gt; ~r</tt></nobr>, as
+        <nobr><tt>p and q =&gt; not r</tt></nobr>, or as
+        <nobr><tt>p &amp;&amp; q -&gt; !r</tt></nobr>. The connectives &#8868;
+        and &#8869; can be entered as <tt>T</tt> and <tt>F</tt>.
+    </p>
+    <p>
+        <input
+            id="expressionInput"
+            type="text"
+            bind:value={input}
+            placeholder="Enter a formula"
+        />
+    </p>
+    <div id="table-target">
+        <TruthTable bind:input />
+    </div>
+</div>
 
 <style>
-  .logo {
-    height: 6em;
-    padding: 1.5em;
-    will-change: filter;
-  }
-  .logo:hover {
-    filter: drop-shadow(0 0 2em #646cffaa);
-  }
-  .logo.svelte:hover {
-    filter: drop-shadow(0 0 2em #ff3e00aa);
-  }
-  .read-the-docs {
-    color: #888;
-  }
+    input#expressionInput {
+        font-family: monospace;
+        font-size: 20px;
+        margin: 20px 0 0 0;
+    }
+
+    div.content {
+        border-radius: 10px;
+        display: inline-block;
+        border: 5px solid #8080c0;
+        margin-left: auto;
+        margin-right: auto;
+        vertical-align: top;
+        min-width: 800px;
+    }
+
+    h1.title {
+        color: #4040a0;
+    }
+
+    p.overview {
+        width: 600px;
+        text-align: justify;
+        font-size: 13pt;
+        margin-left: auto;
+        margin-right: auto;
+        margin-bottom: 0px;
+    }
+
+    tt {
+        font-family: "Ubuntu Mono";
+    }
 </style>
