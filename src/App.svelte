@@ -6,6 +6,7 @@
 
 <div class="content">
     <h1 class="title">Truth Table Generator</h1>
+    <a href="https://web.stanford.edu/class/cs103/tools/truth-table-tool/">Based on Keith Schawrz' original design</a>
     <p class="overview">
         This tool generates truth tables for propositional logic formulas. You
         can enter logical operators in several different formats. For example,
