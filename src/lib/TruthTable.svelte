@@ -1,7 +1,58 @@
 <script lang="ts">
+    import { resetState } from "./ast";
     import { parse } from "./parser";
 
     export let input: string;
+
+    async function exportToLatexVar() {
+        let latex = `\\begin{center}\\begin{tabular}{${"c".repeat(variables.length)}|`;
+        
+        let keys: Record<string, [string, boolean]> = {};
+        value.i = 0;
+        const end = ast.toLatexVar(variables, assignment, keys)
+
+        latex += "c".repeat(Object.keys(keys).length + 1) + "}\n";
+        latex += variables.map(v => `$${v}$`).join(" & ");
+        for (const key in keys) {
+            const [ltx, _] = keys[key];
+            latex += ` & $\\overbrace{${ltx}}^${key}$`;
+        }
+        latex += ` & ${end}`;
+        latex += "\\\\\\hline\n";
+
+        for (value.i = 0; value.i < 1 << variables.length; value.i++) {
+            latex += Array.from(assignment).map(v => v ? "T" : "F").join(" & ") 
+            keys = {};
+            ast.toLatexVar(variables, assignment, keys);
+            for (const key in keys) {
+                const [_, v] = keys[key];
+                latex += ` & ${v? "T" : "F"}`;
+            }
+            latex += ` & ${ast.evaluate(assignment) ? "T" : "F"}`
+            latex += " \\\\\n";
+        }
+        latex += "\\end{tabular}\\end{center}\n";
+
+        resetState();
+        await navigator.clipboard.writeText(latex);
+        showCopied = true;
+        setTimeout(() => showCopied = false, 1000);
+    }
+
+    async function exportToLatex() {
+        let latex = `\\begin{center}\\begin{tabular}{${"c".repeat(variables.length)}|c}\n`;
+        latex += variables.map(v => `$${v}$`).join(" & ") + ` & $${ast.toLatex(variables)}$\n`;
+        latex += "\\\\\\hline\n";
+        for (let i = 0; i < 1 << variables.length; i++) {
+            value.i = i;
+            latex += Array.from(assignment).map(v => v ? "T" : "F").join(" & ") + ` & ${ast.evaluate(assignment) ? "T" : "F"}`;
+            latex += " \\\\\n";
+        }
+        latex += "\\end{tabular}\\end{center}\n";
+        await navigator.clipboard.writeText(latex);
+        showCopied = true;
+        setTimeout(() => showCopied = false, 1000);
+    }
 
     function parseAndCatch(input: string) {
         try {
@@ -85,20 +136,10 @@
         </table>
     </div>
 
-    <button class="export-button" on:click={async () => {
-        let latex = `\\begin{center}\\begin{tabular}{${"c".repeat(variables.length)}|c}\n`;
-        latex += variables.map(v => `$${v}$`).join(" & ") + ` & $${ast.toLatex(variables)}$\n`;
-        latex += "\\\\\\hline\n";
-        for (let i = 0; i < 1 << variables.length; i++) {
-            value.i = i;
-            latex += Array.from(assignment).map(v => v ? "T" : "F").join(" & ") + ` & ${ast.evaluate(assignment) ? "T" : "F"}`;
-            latex += " \\\\\n";
-        }
-        latex += "\\end{tabular}\\end{center}\n";
-        await navigator.clipboard.writeText(latex);
-        showCopied = true;
-        setTimeout(() => showCopied = false, 1000);
-    }}>Export to LaTeX</button>
+    <div class="inline-block">
+        <button class="export-button" on:click={exportToLatexVar}>Export to LaTeX w/ variable substitution</button>
+        <button class="export-button" on:click={exportToLatex}>Export to LaTeX</button>
+    </div>
 
     {#if showCopied}
         <div class="copied">Copied to clipboard!</div>
@@ -107,6 +148,10 @@
 {/if}
 
 <style>
+    .inline-block {
+        display: inline-block;
+    }
+
     .copied {
         font-family: helvetica;
         color: #555;

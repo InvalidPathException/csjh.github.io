@@ -186,7 +186,8 @@ function isReservedWord(token: string) {
         token === "iff" ||
         token === "implies" ||
         token === "true" ||
-        token === "false"
+        token === "false" ||
+        token === "xor"
     );
 }
 
@@ -455,10 +456,9 @@ function numberVariables(preliminary: { tokens: any; variableSet: any }) {
     }
 
     /* Change each variable's name to its index. */
-    for (let j = 0; j < preliminary.tokens.length; j++) {
-        if (preliminary.tokens[j].type === "variable") {
-            preliminary.tokens[j].index =
-                preliminary.variableSet[preliminary.tokens[j].index];
+    for (const token of preliminary.tokens) {
+        if (token.type === "variable") {
+            token.index = preliminary.variableSet[token.index];
         }
     }
 
