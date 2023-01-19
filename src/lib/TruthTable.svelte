@@ -18,6 +18,7 @@
         undefined;
     let variables: string[] = [];
     let ast: any = {};
+    let showCopied = false;
 
     $: if (input != "") {
         ({ variables, ast } = parseAndCatch(input));
@@ -30,7 +31,7 @@
         get: (target, prop) => {
             if (prop == "length") {
                 return variables.length;
-            } else {
+            } else if (typeof prop == "string" && !isNaN(Number(prop))) {
                 return !((target.i >> (target.length - Number(prop) - 1)) & 1);
             }
         }
@@ -55,6 +56,7 @@
         </div>
     </div>
 {:else if input}
+<div class="parent-holder">
     <div class="truth-table-holder">
         <table class="truthTable">
             <tr class="header">
@@ -82,9 +84,55 @@
             {/each}
         </table>
     </div>
+
+    <button class="export-button" on:click={async () => {
+        let latex = `\\begin{center}\\begin{tabular}{${"c".repeat(variables.length)}|c}\n`;
+        latex += variables.map(v => `$${v}$`).join(" & ") + ` & $${ast.toLatex(variables)}$\n`;
+        latex += "\\\\\\hline\n";
+        for (let i = 0; i < 1 << variables.length; i++) {
+            value.i = i;
+            latex += Array.from(assignment).map(v => v ? "T" : "F").join(" & ") + ` & ${ast.evaluate(assignment) ? "T" : "F"}`;
+            latex += " \\\\\n";
+        }
+        latex += "\\end{tabular}\\end{center}\n";
+        await navigator.clipboard.writeText(latex);
+        showCopied = true;
+        setTimeout(() => showCopied = false, 1000);
+    }}>Export to LaTeX</button>
+
+    {#if showCopied}
+        <div class="copied">Copied to clipboard!</div>
+    {/if}
+</div>
 {/if}
 
 <style>
+    .copied {
+        font-family: helvetica;
+        color: #555;
+        font-size: 10pt;
+        margin-bottom: 20px;
+    }
+
+    .parent-holder {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .export-button {
+        background: #f1f1f7;
+        border: 1px solid #f1f1f7;
+        border-radius: 5px;
+        padding: 5px 5px;
+        font-size: 7pt;
+        font-family: helvetica;
+        color: #555;
+        cursor: pointer;
+        margin: 20px;
+        text-align: center;
+    }
+
     table.truthTable {
         font-family: helvetica;
         color: #555;
@@ -127,7 +175,7 @@
         background: #fafafa;
         padding: 10px 18px;
         display: inline-block;
-        margin: 20px;
+        margin: 20px 20px 0 20px;
     }
 
     span.syntax-error {
