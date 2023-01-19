@@ -19,12 +19,15 @@ export interface Node {
     evaluate: (assignment: boolean[]) => boolean | Node;
     toString: (variables: Node[]) => string | Node;
     toLatex: (variables: Node[]) => string | Node;
-    toLatexVar: (variables: Node[], assignment: boolean[], keys: Record<string, [string, boolean]>) => string | Node;
+    toLatexVar: (variables: string[], assignment: boolean[], keys: Record<string, [string, boolean]>) => string | Node;
 }
 
 let state = 0;
-export function resetState() {
-    state = 0; // yikes
+export function toLatexVar(node: Node, variables: string[], assignment: boolean[], keys: Record<string, [string, boolean]>) {
+    state = 0;
+    const res = node.toLatexVar(variables, assignment, keys);
+    state = 0;
+    return res;
 }
 
 /*** Node type for T. ***/

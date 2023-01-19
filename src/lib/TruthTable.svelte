@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { resetState } from "./ast";
+    import { toLatexVar } from "./ast";
     import { parse } from "./parser";
 
     export let input: string;
@@ -9,16 +9,20 @@
         
         let keys: Record<string, [string, boolean]> = {};
         value.i = 0;
-        const end = ast.toLatexVar(variables, assignment, keys)
+        const end = String(toLatexVar(ast, variables, assignment, keys));
+        const negatedEnd = end.startsWith("\\neg ");
+        const objKeys = Object.keys(keys);
 
-        latex += "c".repeat(Object.keys(keys).length + 1) + "}\n";
-        latex += variables.map(v => `$${v}$`).join(" & ");
-        for (const key in keys) {
+        latex += "c".repeat(objKeys.length + 1 + +negatedEnd) + "}\n";
+        latex += variables.map(v => `$${v}$`).join(" &\n");
+        for (let i = 0, key = objKeys[i]; i < objKeys.length; i++, key = objKeys[i]) {
             const [ltx, _] = keys[key];
-            latex += ` & $\\overbrace{${ltx}}^${key}$`;
+            latex += i + 1 == objKeys.length && !negatedEnd? 
+                    ` &\n$${ltx}$`
+                  : ` &\n$\\overbrace{${ltx}}^${key}$`;
         }
-        latex += ` & ${end}`;
-        latex += "\\\\\\hline\n";
+        if (negatedEnd) latex += ` &\n$${end}$`;
+        latex += "\n\\\\\\hline\n";
 
         for (value.i = 0; value.i < 1 << variables.length; value.i++) {
             latex += Array.from(assignment).map(v => v ? "T" : "F").join(" & ") 
@@ -28,12 +32,11 @@
                 const [_, v] = keys[key];
                 latex += ` & ${v? "T" : "F"}`;
             }
-            latex += ` & ${ast.evaluate(assignment) ? "T" : "F"}`
+            if (negatedEnd) latex += ` & ${ast.evaluate(assignment)? "T" : "F"}`;
             latex += " \\\\\n";
         }
-        latex += "\\end{tabular}\\end{center}\n";
+        latex += "\\end{tabular}\\end{center}";
 
-        resetState();
         await navigator.clipboard.writeText(latex);
         showCopied = true;
         setTimeout(() => showCopied = false, 1000);
@@ -41,14 +44,15 @@
 
     async function exportToLatex() {
         let latex = `\\begin{center}\\begin{tabular}{${"c".repeat(variables.length)}|c}\n`;
-        latex += variables.map(v => `$${v}$`).join(" & ") + ` & $${ast.toLatex(variables)}$\n`;
+        latex += variables.map(v => `$${v}$`).join(" &\n") + ` &\n$${ast.toLatex(variables)}$\n`;
         latex += "\\\\\\hline\n";
         for (let i = 0; i < 1 << variables.length; i++) {
             value.i = i;
             latex += Array.from(assignment).map(v => v ? "T" : "F").join(" & ") + ` & ${ast.evaluate(assignment) ? "T" : "F"}`;
             latex += " \\\\\n";
         }
-        latex += "\\end{tabular}\\end{center}\n";
+        latex += "\\end{tabular}\\end{center}";
+
         await navigator.clipboard.writeText(latex);
         showCopied = true;
         setTimeout(() => showCopied = false, 1000);
