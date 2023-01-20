@@ -281,6 +281,9 @@ const convert = {
     "\u22A5": "F",
     "false": "F",
     "\\bot": "F",
+
+    "(": "(",
+    ")": ")"
 }
 function translate(input: string) {
     return convert[input] ?? input;
