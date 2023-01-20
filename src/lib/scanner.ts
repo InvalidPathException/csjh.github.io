@@ -221,182 +221,92 @@ function isOperatorStart(input: string, index: number) {
     return tryReadOperator(input, index) !== null;
 }
 
-/* Function: tryReadOperator
- *
- * Given the input to scan and a start index, returns the operator at the current
- * index if one exists, and null otherwise.
- */
-function tryReadOperator(input: string, index: number) {
-    /* TODO: Clean this up a bit? This was fine when we had only a few symbols, but
-     * with the addition of the LaTeX operators this is getting a bit unwieldy.
-     */
-
-    /* Look in reverse order of length so that we use maximal-munch. */
-    /* Case 1: Fifteen-character operators. */
-    if (index < input.length - 14) {
-        const fifteenChars = input.substring(index, index + 15);
-        if (
-            fifteenChars === "\\leftrightarrow" ||
-            fifteenChars === "\\Leftrightarrow"
-        ) {
-            return fifteenChars;
-        }
-    }
-
-    /* Case 2: Eleven-character operators. */
-    if (index < input.length - 10) {
-        const elevenChars = input.substring(index, index + 11);
-        if (elevenChars === "\\rightarrow" || elevenChars === "\\Rightarrow") {
-            return elevenChars;
-        }
-    }
-
-    /* Case 3: Seven-character operators like "implies" */
-    if (index < input.length - 6) {
-        const sevenChars = input.substring(index, index + 7);
-        if (sevenChars === "implies") {
-            return sevenChars;
-        }
-    }
-
-    /* Case 4: Six-character operators */
-    if (index < input.length - 5) {
-        const sixChars = input.substring(index, index + 6);
-        if (sixChars === "\\wedge") {
-            return sixChars;
-        }
-    }
-
-    /* Case 5: Five-character operators like "false" */
-    if (index < input.length - 4) {
-        const fiveChars = input.substring(index, index + 5);
-        if (
-            fiveChars === "false" ||
-            fiveChars === "\\lnot" ||
-            fiveChars === "\\lneg" ||
-            fiveChars === "\\land"
-        ) {
-            return fiveChars;
-        }
-    }
-
-    /* Case 6: Four-character operators like "true" */
-    if (index < input.length - 3) {
-        const fourChars = input.substring(index, index + 4);
-        if (
-            fourChars === "true" ||
-            fourChars === "\\top" ||
-            fourChars === "\\bot" ||
-            fourChars === "\\lor" ||
-            fourChars === "\\vee" ||
-            fourChars === "\\neg"
-        ) {
-            return fourChars;
-        }
-    }
-
-    /* Case 7: Three-char operators like <-> */
-    if (index < input.length - 2) {
-        const threeChars = input.substring(index, index + 3);
-        if (
-            threeChars === "<->" ||
-            threeChars === "and" ||
-            threeChars === "<=>" ||
-            threeChars === "not" ||
-            threeChars === "iff" ||
-            threeChars === "\\to"
-        ) {
-            return threeChars;
-        }
-    }
-
-    /* Case 8: Two-char operator like ->, /\, \/ */
-    if (index < input.length - 1) {
-        const twoChars = input.substring(index, index + 2);
-        if (
-            twoChars === "/\\" ||
-            twoChars === "\\/" ||
-            twoChars === "->" ||
-            twoChars === "&&" ||
-            twoChars === "||" ||
-            twoChars === "or" ||
-            twoChars === "=>"
-        ) {
-            return twoChars;
-        }
-    }
-
-    /* Case 9: Single-char operator like (, ), ~, T, F. */
-    if (
-        /[()~TF^!\u2227\u2228\u2192\u2194\u22A4\u22A5\u00AC\u2295]/.test(
-            input.charAt(index)
-        )
-    ) {
-        return input.charAt(index);
-    }
-
-    /* If we got here, nothing matched. */
-    return null;
-}
-
 /* Function: translate
  *
  * Translates a lexeme into its appropriate token type. This is used, for example, to map
  * & and | to /\ and \/.
  */
+const convert = {
+    "/\\": "/\\",
+    "&&": "/\\",
+    "and": "/\\",
+    "\u2227": "/\\",
+    "\\land": "/\\",
+    "\\wedge": "/\\",
+
+    "\\/": "\\/",
+    "||": "\\/",
+    "or": "\\/",
+    "\u2228": "\\/",
+    "\\lor": "\\/",
+    "\\vee": "\\/",
+
+    "->": "->",
+    "=>": "->",
+    "\u2192": "->",
+    "implies": "->",
+    "\\to": "->",
+    "\\rightarrow": "->",
+    "\\Rightarrow": "->",
+    "\\implies": "->",
+
+    "<->": "<->",
+    "<=>": "<->",
+    "\u2194": "<->",
+    "iff": "<->",
+    "\\leftrightarrow": "<->",
+    "\\Leftrightarrow": "<->",
+    "\\equiv": "<->",
+    "\\same": "<->",
+
+    "~": "~",
+    "not": "~",
+    "!": "~",
+    "\u00AC": "~",
+    "\\lnot": "~",
+    "\\neg": "~",
+
+    "^": "^",
+    "xor": "^",
+    "\u2295": "^",
+    "\\niff": "^",
+    "\\oplus": "^",
+
+    "T": "T",
+    "\u22A4": "T",
+    "true": "T",
+    "\\top": "T",
+
+    "F": "F",
+    "\u22A5": "F",
+    "false": "F",
+    "\\bot": "F",
+}
 function translate(input: string) {
-    if (
-        input === "&&" ||
-        input === "and" ||
-        input === "\u2227" ||
-        input === "\\land" ||
-        input === "\\wedge"
-    )
-        return "/\\";
-    if (
-        input === "||" ||
-        input === "or" ||
-        input === "\u2228" ||
-        input === "\\lor" ||
-        input === "\\vee"
-    )
-        return "\\/";
-    if (
-        input === "=>" ||
-        input === "\u2192" ||
-        input === "implies" ||
-        input === "\\to" ||
-        input === "\\rightarrow" ||
-        input === "\\Rightarrow"
-    )
-        return "->";
-    if (
-        input === "<=>" ||
-        input === "\u2194" ||
-        input === "iff" ||
-        input === "\\leftrightarrow" ||
-        input === "\\Leftrightarrow"
-    )
-        return "<->";
-    if (
-        input === "not" ||
-        input === "!" ||
-        input === "\u00AC" ||
-        input === "\\lnot" ||
-        input === "\\neg"
-    )
-        return "~";
-    if (
-        input === "xor" ||
-        input === "^" ||
-        input === "\u2295" ||
-        input === "\\niff"
-    )
-        return "^";
-    if (input === "\u22A4" || input === "true" || input === "\\top") return "T";
-    if (input === "\u22A5" || input === "false" || input === "\\bot")
-        return "F";
-    return input;
+    return convert[input] ?? input;
+}
+
+/* Function: tryReadOperator
+ *
+ * Given the input to scan and a start index, returns the operator at the current
+ * index if one exists, and null otherwise.
+ */
+const operators = Array(20).fill(null).map(() => []);
+Object.keys(convert).forEach((key) => operators[key.length].push(key));
+
+function tryReadOperator(input: string, index: number) {
+    for (let i = operators.length - 1; i >= 0; i--) {
+        if (index >= input.length - i) {
+            continue;
+        }
+        const nChars = input.substring(index, index + i);
+        if (operators[i].includes(nChars)) {
+            return nChars;
+        }
+    }
+
+    /* If we got here, nothing matched. */
+    return null;
 }
 
 /* Function: isWhitespace
