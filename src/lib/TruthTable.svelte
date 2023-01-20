@@ -79,6 +79,9 @@
         ({ variables, ast } = parseAndCatch(input));
     }
 
+    // below is my attempt at a virtual bit array
+    // mainly just wanted to try out proxies
+    // TODO: make the typescript not burn your eyes :(
     $: value = { length: variables.length, i: 0 } as unknown as boolean[] & {
         i: number;
     };
